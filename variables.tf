@@ -1,0 +1,1 @@
+// Here is the Variables configuration for the Terraform module
