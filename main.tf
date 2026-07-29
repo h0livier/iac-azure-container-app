@@ -34,7 +34,7 @@ resource "azurerm_container_app" "this" {
         content {
           transport = liveness_probe.value.protocol
           port      = liveness_probe.value.port
-          path      = liveness_probe.value.protocol == "Http" || liveness_probe.value.protocol == "Https" ? liveness_probe.value.path : null
+          path      = contains(["Http", "Https"], liveness_probe.value.protocol) ? liveness_probe.value.path : null
           
           initial_delay      = liveness_probe.value.initial_delay
           interval_seconds   = liveness_probe.value.interval_seconds
@@ -48,7 +48,7 @@ resource "azurerm_container_app" "this" {
         content {
           transport = readiness_probe.value.protocol
           port      = readiness_probe.value.port
-          path      = readiness_probe.value.protocol == "Http" || readiness_probe.value.protocol == "Https" ? readiness_probe.value.path : null
+          path      = contains(["Http", "Https"], readiness_probe.value.protocol) ? readiness_probe.value.path : null
           
           initial_delay      = readiness_probe.value.initial_delay
           interval_seconds   = readiness_probe.value.interval_seconds
@@ -62,7 +62,7 @@ resource "azurerm_container_app" "this" {
         content {
           transport = startup_probe.value.protocol
           port      = startup_probe.value.port
-          path      = startup_probe.value.protocol == "Http" || startup_probe.value.protocol == "Https" ? startup_probe.value.path : null
+          path      = contains(["Http", "Https"], startup_probe.value.protocol) ? startup_probe.value.path : null
           
           initial_delay      = startup_probe.value.initial_delay
           interval_seconds   = startup_probe.value.interval_seconds
