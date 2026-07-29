@@ -159,10 +159,12 @@ module "container_app_full" {
         value = "Information"
       },
       {
-        name  = "API_KEY"
-        value = "secret-value"
+        name  = "DATABASE_URL"
+        value = "Server=mydb.postgres.database.azure.com;..."
       }
     ]
+    # Note: For sensitive values (API keys, passwords), use Azure Key Vault
+    # references instead. See: https://docs.microsoft.com/en-us/azure/container-apps/manage-secrets
 
     health_probe = {
       type             = "readiness"
@@ -210,6 +212,45 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 app.Run();
 ```
+
+## Secrets Management
+
+### Environment Variables vs Secrets
+
+This module supports passing environment variables to containers through the `env` parameter. However, **sensitive values should never be passed as plain environment variables**.
+
+### Recommended Approach: Azure Key Vault
+
+For sensitive configuration (API keys, connection strings, passwords), use Azure Container Apps secrets feature with Azure Key Vault:
+
+```hcl
+# Example: Using key vault reference (implement in parent Terraform)
+# This requires additional configuration beyond this module
+
+container_app = {
+  name   = "my-app"
+  image  = "myapp:latest"
+  
+  # Non-sensitive configuration
+  env = [
+    {
+      name  = "LOG_LEVEL"
+      value = "Information"
+    },
+    {
+      name  = "ENVIRONMENT"
+      value = "production"
+    }
+  ]
+  
+  # Sensitive values should be managed through Container Apps secrets
+  # and referenced as: secretRef:my-secret-name
+}
+```
+
+For complete secrets management setup, refer to:
+- [Azure Container Apps Secrets Documentation](https://docs.microsoft.com/en-us/azure/container-apps/manage-secrets)
+- [Azure Key Vault Integration](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets?tabs=azure-cli#using-key-vault-references)
 
 ## Cost Optimization
 
