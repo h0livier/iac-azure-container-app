@@ -95,7 +95,7 @@ module "blazor_app" {
       initial_delay    = 10
       interval_seconds = 30
       timeout_seconds  = 3
-      failure_count    = 3
+      failure_count_threshold = 3
     }
   }
 }
@@ -174,7 +174,7 @@ module "container_app_full" {
       initial_delay    = 5
       interval_seconds = 10
       timeout_seconds  = 3
-      failure_count    = 2
+      failure_count_threshold = 2
     }
   }
 }
@@ -334,7 +334,7 @@ container_app = {
 | `initial_delay` | number | 5 | Delay in seconds before first probe (Blazor: 10-15 recommended) |
 | `interval_seconds` | number | 10 | Interval between probes in seconds |
 | `timeout_seconds` | number | 3 | Timeout for each probe in seconds |
-| `failure_count` | number | 3 | Consecutive failures before taking action |
+| `failure_count_threshold` | number | 3 | Consecutive failures before taking action |
 
 ## Outputs
 

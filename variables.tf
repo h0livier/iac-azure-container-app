@@ -31,14 +31,14 @@ variable "container_app" {
       value = string
     })), [])
     health_probe = optional(object({
-      type             = optional(string, "liveness")
-      protocol         = optional(string, "Http")
-      port             = optional(number, 80)
-      path             = optional(string, "/health")
-      initial_delay    = optional(number, 5)
-      interval_seconds = optional(number, 10)
-      timeout_seconds  = optional(number, 3)
-      failure_count    = optional(number, 3)
+      type                    = optional(string, "liveness")
+      protocol                = optional(string, "Http")
+      port                    = optional(number, 80)
+      path                    = optional(string, "/health")
+      initial_delay           = optional(number, 5)
+      interval_seconds        = optional(number, 10)
+      timeout_seconds         = optional(number, 3)
+      failure_count_threshold = optional(number, 3)
     }), null)
   })
 }
