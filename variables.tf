@@ -26,7 +26,7 @@ variable "container_app" {
     min_replicas     = optional(number, 0)
     external_enabled = optional(bool, true)
     target_port      = optional(number, 80)
-    env              = optional(list(object({
+    env = optional(list(object({
       name  = string
       value = string
     })), [])

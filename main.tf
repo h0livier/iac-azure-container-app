@@ -35,10 +35,9 @@ resource "azurerm_container_app" "this" {
           transport = liveness_probe.value.protocol
           port      = liveness_probe.value.port
           path      = contains(["Http", "Https"], liveness_probe.value.protocol) ? liveness_probe.value.path : null
-          
+
           initial_delay           = liveness_probe.value.initial_delay
           interval_seconds        = liveness_probe.value.interval_seconds
-          timeout_seconds         = liveness_probe.value.timeout_seconds
           failure_count_threshold = liveness_probe.value.failure_count_threshold
         }
       }
@@ -49,10 +48,9 @@ resource "azurerm_container_app" "this" {
           transport = readiness_probe.value.protocol
           port      = readiness_probe.value.port
           path      = contains(["Http", "Https"], readiness_probe.value.protocol) ? readiness_probe.value.path : null
-          
+
           initial_delay           = readiness_probe.value.initial_delay
           interval_seconds        = readiness_probe.value.interval_seconds
-          timeout_seconds         = readiness_probe.value.timeout_seconds
           failure_count_threshold = readiness_probe.value.failure_count_threshold
         }
       }
@@ -63,10 +61,9 @@ resource "azurerm_container_app" "this" {
           transport = startup_probe.value.protocol
           port      = startup_probe.value.port
           path      = contains(["Http", "Https"], startup_probe.value.protocol) ? startup_probe.value.path : null
-          
+
           initial_delay           = startup_probe.value.initial_delay
           interval_seconds        = startup_probe.value.interval_seconds
-          timeout_seconds         = startup_probe.value.timeout_seconds
           failure_count_threshold = startup_probe.value.failure_count_threshold
         }
       }
