@@ -20,6 +20,56 @@ resource "azurerm_container_app" "this" {
       image  = var.container_app.image
       cpu    = var.container_app.cpu
       memory = var.container_app.memory
+
+      dynamic "env" {
+        for_each = var.container_app.env
+        content {
+          name  = env.value.name
+          value = env.value.value
+        }
+      }
+
+      dynamic "liveness_probe" {
+        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "liveness" ? [var.container_app.health_probe] : []
+        content {
+          transport = liveness_probe.value.protocol
+          port      = liveness_probe.value.port
+          path      = contains(["Http", "Https"], liveness_probe.value.protocol) ? liveness_probe.value.path : null
+          
+          initial_delay           = liveness_probe.value.initial_delay
+          interval_seconds        = liveness_probe.value.interval_seconds
+          timeout_seconds         = liveness_probe.value.timeout_seconds
+          failure_count_threshold = liveness_probe.value.failure_count_threshold
+        }
+      }
+
+      dynamic "readiness_probe" {
+        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "readiness" ? [var.container_app.health_probe] : []
+        content {
+          transport = readiness_probe.value.protocol
+          port      = readiness_probe.value.port
+          path      = contains(["Http", "Https"], readiness_probe.value.protocol) ? readiness_probe.value.path : null
+          
+          initial_delay           = readiness_probe.value.initial_delay
+          interval_seconds        = readiness_probe.value.interval_seconds
+          timeout_seconds         = readiness_probe.value.timeout_seconds
+          failure_count_threshold = readiness_probe.value.failure_count_threshold
+        }
+      }
+
+      dynamic "startup_probe" {
+        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "startup" ? [var.container_app.health_probe] : []
+        content {
+          transport = startup_probe.value.protocol
+          port      = startup_probe.value.port
+          path      = contains(["Http", "Https"], startup_probe.value.protocol) ? startup_probe.value.path : null
+          
+          initial_delay           = startup_probe.value.initial_delay
+          interval_seconds        = startup_probe.value.interval_seconds
+          timeout_seconds         = startup_probe.value.timeout_seconds
+          failure_count_threshold = startup_probe.value.failure_count_threshold
+        }
+      }
     }
   }
 
