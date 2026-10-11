@@ -320,8 +320,14 @@ container_app = {
 | `max_replicas` | number | 1 | Maximum number of replicas |
 | `external_enabled` | bool | true | Whether the app is externally accessible |
 | `target_port` | number | 80 | Container port to expose |
-| `env` | list(object) | [] | Environment variables as list of `{name: string, value: string}` |
-| `health_probe` | object | null | Optional health probe configuration |
+| `client_certificate_mode` | string | null | Ingress client certificate mode (`accept`, `ignore`, `require`) |
+| `secrets` | list(object) | [] | Optional container app secrets as `{name: string, value: string}` |
+| `env` | list(object) | [] | Environment variables as list of `{name: string, value?: string, secret_name?: string}` |
+| `liveness_probe` | object | null | Optional liveness probe configuration |
+| `readiness_probe` | object | null | Optional readiness probe configuration |
+| `startup_probe` | object | null | Optional startup probe configuration |
+| `http_scale_rules` | list(object) | [] | Optional HTTP scale rules with `name` and `concurrent_requests` |
+| `health_probe` | object | null | Deprecated compatibility input for a single probe |
 
 ### health_probe Object Details (Optional)
 
@@ -335,6 +341,84 @@ container_app = {
 | `interval_seconds` | number | 10 | Interval between probes in seconds |
 | `timeout_seconds` | number | 3 | Timeout for each probe in seconds |
 | `failure_count_threshold` | number | 3 | Consecutive failures before taking action |
+
+### Portal-Aligned Example (Multiple Probes + HTTP Scale Rule)
+
+```hcl
+container_app = {
+  name                    = "my-container-app"
+  image                   = "docker.io/ohaybudgetmanager/budgetmanager:latest"
+  cpu                     = 0.5
+  memory                  = "1Gi"
+  revision_mode           = "Single"
+  min_replicas            = 0
+  max_replicas            = 1
+  external_enabled        = true
+  target_port             = 8080
+  client_certificate_mode = "ignore"
+
+  env = [
+    {
+      name  = "AzureAD__TenantId"
+      value = "2b373660-d9de-4991-a70f-e0cb9a077914"
+    },
+    {
+      name  = "AzureAD__ClientId"
+      value = "362533a4-e5b8-480a-a274-a3b6c82fa572"
+    },
+    {
+      name  = "Database__Host"
+      value = "db.giwekrkpisloxnmtmrso.supabase.co"
+    },
+    {
+      name        = "Database__Password"
+      secret_name = "database-password"
+    }
+  ]
+
+  secrets = [
+    {
+      name  = "database-password"
+      value = "replace-with-sensitive-value"
+    }
+  ]
+
+  liveness_probe = {
+    protocol                = "Tcp"
+    port                    = 8080
+    initial_delay           = 0
+    interval_seconds        = 10
+    timeout                 = 5
+    failure_count_threshold = 3
+  }
+
+  readiness_probe = {
+    protocol                = "Tcp"
+    port                    = 8080
+    initial_delay           = 0
+    interval_seconds        = 5
+    timeout                 = 5
+    success_count_threshold = 1
+    failure_count_threshold = 48
+  }
+
+  startup_probe = {
+    protocol                = "Tcp"
+    port                    = 8080
+    initial_delay           = 1
+    interval_seconds        = 1
+    timeout                 = 3
+    failure_count_threshold = 240
+  }
+
+  http_scale_rules = [
+    {
+      name                = "http-scaler"
+      concurrent_requests = "10"
+    }
+  ]
+}
+```
 
 ## Outputs
 

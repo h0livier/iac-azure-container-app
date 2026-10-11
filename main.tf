@@ -11,6 +11,14 @@ resource "azurerm_container_app" "this" {
   resource_group_name          = var.resource_group_data.name
   revision_mode                = var.container_app.revision_mode
 
+  dynamic "secret" {
+    for_each = var.container_app.secrets
+    content {
+      name  = secret.value.name
+      value = secret.value.value
+    }
+  }
+
   template {
     min_replicas = var.container_app.min_replicas
     max_replicas = var.container_app.max_replicas
@@ -24,13 +32,16 @@ resource "azurerm_container_app" "this" {
       dynamic "env" {
         for_each = var.container_app.env
         content {
-          name  = env.value.name
-          value = env.value.value
+          name        = env.value.name
+          value       = env.value.value
+          secret_name = env.value.secret_name
         }
       }
 
       dynamic "liveness_probe" {
-        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "liveness" ? [var.container_app.health_probe] : []
+        for_each = var.container_app.liveness_probe != null ? [var.container_app.liveness_probe] : (
+          var.container_app.health_probe != null && var.container_app.health_probe.type == "liveness" ? [var.container_app.health_probe] : []
+        )
         content {
           transport = liveness_probe.value.protocol
           port      = liveness_probe.value.port
@@ -38,12 +49,15 @@ resource "azurerm_container_app" "this" {
 
           initial_delay           = liveness_probe.value.initial_delay
           interval_seconds        = liveness_probe.value.interval_seconds
+          timeout                 = liveness_probe.value.timeout
           failure_count_threshold = liveness_probe.value.failure_count_threshold
         }
       }
 
       dynamic "readiness_probe" {
-        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "readiness" ? [var.container_app.health_probe] : []
+        for_each = var.container_app.readiness_probe != null ? [var.container_app.readiness_probe] : (
+          var.container_app.health_probe != null && var.container_app.health_probe.type == "readiness" ? [var.container_app.health_probe] : []
+        )
         content {
           transport = readiness_probe.value.protocol
           port      = readiness_probe.value.port
@@ -51,12 +65,16 @@ resource "azurerm_container_app" "this" {
 
           initial_delay           = readiness_probe.value.initial_delay
           interval_seconds        = readiness_probe.value.interval_seconds
+          timeout                 = readiness_probe.value.timeout
           failure_count_threshold = readiness_probe.value.failure_count_threshold
+          success_count_threshold = readiness_probe.value.success_count_threshold
         }
       }
 
       dynamic "startup_probe" {
-        for_each = var.container_app.health_probe != null && var.container_app.health_probe.type == "startup" ? [var.container_app.health_probe] : []
+        for_each = var.container_app.startup_probe != null ? [var.container_app.startup_probe] : (
+          var.container_app.health_probe != null && var.container_app.health_probe.type == "startup" ? [var.container_app.health_probe] : []
+        )
         content {
           transport = startup_probe.value.protocol
           port      = startup_probe.value.port
@@ -64,15 +82,25 @@ resource "azurerm_container_app" "this" {
 
           initial_delay           = startup_probe.value.initial_delay
           interval_seconds        = startup_probe.value.interval_seconds
+          timeout                 = startup_probe.value.timeout
           failure_count_threshold = startup_probe.value.failure_count_threshold
         }
+      }
+    }
+
+    dynamic "http_scale_rule" {
+      for_each = var.container_app.http_scale_rules
+      content {
+        name                = http_scale_rule.value.name
+        concurrent_requests = http_scale_rule.value.concurrent_requests
       }
     }
   }
 
   ingress {
-    external_enabled = var.container_app.external_enabled
-    target_port      = var.container_app.target_port
+    external_enabled        = var.container_app.external_enabled
+    target_port             = var.container_app.target_port
+    client_certificate_mode = var.container_app.client_certificate_mode
 
     traffic_weight {
       latest_revision = true
